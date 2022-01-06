@@ -262,6 +262,12 @@ class Node(ABC):
         """
         return self._condition
 
+    def set_condition(self, condition):
+        """
+        Sets the condition of the node
+        """
+        self._condition = condition
+
     def add_pattern_ids(self, ids: Set[int]):
         """
         Adds a set of Ds of patterns with which this node is associated.

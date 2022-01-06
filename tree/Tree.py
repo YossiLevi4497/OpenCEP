@@ -26,6 +26,7 @@ class Tree:
                  plan_nodes_to_nodes_map: Dict[TreePlanNode, Node] = None):
         self.__plan_nodes_to_nodes_map = plan_nodes_to_nodes_map
         pattern_parameters = PatternParameters(pattern.window, pattern.confidence)
+
         self.__root = self.__construct_tree(pattern.full_structure, tree_plan.root,
                                             Tree.__get_operator_arg_list(pattern.full_structure),
                                             pattern_parameters, None, pattern.consumption_policy)
@@ -34,7 +35,7 @@ class Tree:
             for event_type in pattern.consumption_policy.single_types:
                 self.__root.register_single_event_type(event_type)
 
-        self.__apply_condition(pattern)
+        # self.__apply_condition(pattern) this is the second recursive call along the tree so we want to undo it
 
         self.__root.set_is_output_node(True)
         self.__root.create_storage_unit(storage_params)
@@ -51,8 +52,9 @@ class Tree:
         """
         condition_copy = deepcopy(pattern.condition)
         # make sure the statistics collector is not copied
-        condition_copy.set_statistics_collector(pattern.condition.get_statistics_collector())
+        # condition_copy.set_statistics_collector(pattern.condition.get_statistics_collector())
         self.__root.apply_condition(condition_copy)
+
 
     def get_leaves(self):
         return self.__root.get_leaves()
@@ -111,6 +113,7 @@ class Tree:
         if consumption_policy is not None and \
                 consumption_policy.should_register_event_type_as_single(False, primitive_event_structure.type):
             parent.register_single_event_type(primitive_event_structure.type)
+
         return LeafNode(pattern_params, tree_plan_leaf.event_index, primitive_event_structure, parent)
 
     def __handle_unary_structure(self, unary_tree_plan: TreePlanUnaryNode,
@@ -160,6 +163,8 @@ class Tree:
         # check whether the node corresponding to tree_plan already exists
         node = self.__get_existing_node(tree_plan, pattern_params, parent)
         if node is not None:
+            condition_copy = deepcopy(tree_plan.condition)
+            node.set_condition(condition_copy)
             return node
 
         if isinstance(tree_plan, TreePlanUnaryNode):
@@ -190,6 +195,8 @@ class Tree:
 
         self.__register_new_node(tree_plan, node)
         return node
+
+
 
     def __get_existing_node(self, tree_plan: TreePlanNode, pattern_params: PatternParameters, parent: Node):
         """
