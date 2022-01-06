@@ -35,7 +35,7 @@ class Tree:
             for event_type in pattern.consumption_policy.single_types:
                 self.__root.register_single_event_type(event_type)
 
-        # self.__apply_condition(pattern) this is the second recursive call along the tree so we want to undo it
+        # self.__apply_condition(pattern)
 
         self.__root.set_is_output_node(True)
         self.__root.create_storage_unit(storage_params)
