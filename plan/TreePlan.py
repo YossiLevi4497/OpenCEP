@@ -206,6 +206,12 @@ class TreePlanBinaryNode(TreePlanInternalNode):
     def get_leaves(self):
         return self.left_child.get_leaves() + self.right_child.get_leaves()
 
+    # def get_right_child(self):
+    #     return self.right_child
+    #
+    # def get_left_child(self):
+    #     return self.left_child
+
     def _propagate_condition(self, condition: CompositeCondition):
         self.left_child.apply_condition(condition)
         self.right_child.apply_condition(condition)

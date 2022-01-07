@@ -162,13 +162,16 @@ class Tree:
         """
         # check whether the node corresponding to tree_plan already exists
         node = self.__get_existing_node(tree_plan, pattern_params, parent)
+        condition_copy = deepcopy(tree_plan.condition)
+
         if node is not None:
-            condition_copy = deepcopy(tree_plan.condition)
             node.set_condition(condition_copy)
             return node
 
         if isinstance(tree_plan, TreePlanUnaryNode):
             # this is an unary operator (possibly encapsulating a nested structure)
+            # TreePlanUnaryNode.child.apply_condition(condition_copy)
+            TreePlanUnaryNode.apply_condition(condition_copy)
             node = self.__handle_unary_structure(tree_plan, root_operator, args,
                                                  pattern_params, parent, consumption_policy)
 
@@ -179,10 +182,14 @@ class Tree:
 
         elif isinstance(tree_plan, TreePlanNestedNode):
             # This is a nested node, therefore needs to use construct a subtree of this nested tree, recursively.
+            # TreePlanNestedNode.sub_tree_plan.apply_condition(condition_copy)
             node = self.__construct_tree(args[tree_plan.nested_event_index], tree_plan.sub_tree_plan, tree_plan.args,
                                          pattern_params, parent, consumption_policy)
 
         elif isinstance(tree_plan, TreePlanBinaryNode):
+            # TreePlanBinaryNode.get_left_child(TreePlanBinaryNode).apply_condition(condition_copy) this is try1. not working because TreePlanNode is abstract class
+            # TreePlanBinaryNode.get_right_child(TreePlanBinaryNode).apply_condition(condition_copy)
+            TreePlanBinaryNode.propagate_condition(condition_copy) #try2
             node = self.__instantiate_internal_node(tree_plan, pattern_params, parent)
             left_subtree = self.__construct_tree(root_operator, tree_plan.left_child, args,
                                                  pattern_params, node, consumption_policy)

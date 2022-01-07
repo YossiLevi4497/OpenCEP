@@ -264,7 +264,7 @@ class Node(ABC):
 
     def set_condition(self, condition):
         """
-        Sets the condition of the node
+        Sets the condition of the node.
         """
         self._condition = condition
 
