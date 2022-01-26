@@ -6,25 +6,6 @@ class LowestPositionNegationAlgorithm(NegationAlgorithm):
     """
     This class represents the lowest position negation algorithm.
     """
-    def _add_negative_part_in_position(self, pattern: Pattern, positive_tree_plan: TreePlanBinaryNode,
-                                       node_under_negation: TreePlanLeafNode, index: int, node_name: str,
-                                       is_unbounded: bool):
-        # position is on right side
-        if node_name in positive_tree_plan.right_child.get_event_names():
-            if len(positive_tree_plan.right_child.get_event_names()) > 1:
-                self._add_negative_part_in_position(pattern, positive_tree_plan.right_child, node_under_negation, index,
-                                                    node_name, is_unbounded)
-            else:
-                positive_tree_plan.right_child = NegationAlgorithm._instantiate_negative_node(pattern, node_under_negation,
-                                                                                  positive_tree_plan.right_child, is_unbounded)
-        # position is on left side
-        else:
-            if len(positive_tree_plan.left_child.get_event_names()) > 1:
-                self._add_negative_part_in_position(pattern, positive_tree_plan.left_child, node_under_negation, index,
-                                                    node_name, is_unbounded)
-            else:
-                positive_tree_plan.left_child = NegationAlgorithm._instantiate_negative_node(pattern, node_under_negation,
-                                                                                  positive_tree_plan.left_child, is_unbounded)
 
     def _add_negative_part(self, pattern: Pattern, statistics: Dict, positive_tree_plan: TreePlanBinaryNode,
                            all_negative_indices: List[int], unbounded_negative_indices: List[int],
@@ -60,7 +41,7 @@ class LowestPositionNegationAlgorithm(NegationAlgorithm):
                 node_under_negation = TreePlanLeafNode(temp_leaf_index,
                                                        negation_operator_arg.type, negation_operator_arg.name)
             # get coi of negation node
-            conditions =  pattern.condition.extract_atomic_conditions()
+            conditions = pattern.condition.extract_atomic_conditions()
             negation_coi = {negation_operator_arg.name}
             for cond in conditions:
                 if negation_operator_arg.name in cond.get_event_names():
@@ -74,23 +55,38 @@ class LowestPositionNegationAlgorithm(NegationAlgorithm):
                 names = event.get_all_event_names()
                 if names[0] in negation_coi:
                     lowest_node_name = names[0]
-                    lowest_index = i
+                    lowest_index = i + 1
             positive_events.insert(lowest_index, negation_operator_arg)
 
-            #update all nodes indexes
+            # update all nodes indexes
             tree_nodes = positive_tree_plan.get_leaves()
             node_under_negation.event_index = lowest_index
             for tree_node in tree_nodes:
                 if tree_node.event_index >= lowest_index:
                     tree_node.event_index = tree_node.event_index + 1
 
-            # insert the node to it's right place
-            if lowest_node_name == "":
-                #if it can be the first node we will put it first
-                positive_tree_plan = NegationAlgorithm._instantiate_negative_node(pattern, node_under_negation,
-                                                                                  positive_tree_plan, is_unbounded)
             else:
-                # we want to insert the node next to his lastname
-                self._add_negative_part_in_position(pattern, positive_tree_plan, node_under_negation, lowest_index,
-                                                    lowest_node_name, is_unbounded)
+                # getting to the currect node
+                if lowest_node_name in positive_tree_plan.right_child.get_event_names():
+                    positive_tree_plan = NegationAlgorithm._instantiate_negative_node(pattern, positive_tree_plan,
+                                                                                      node_under_negation, is_unbounded)
+                else:
+                    # we should get deeper in the tree
+                    temp_tree = positive_tree_plan.left_child
+                    # edge case when left child is the node
+                    if len(temp_tree.get_event_names()) == 1:
+                        positive_tree_plan.left_child = NegationAlgorithm._instantiate_negative_node(pattern, temp_tree,
+                                                                                                     node_under_negation,
+                                                                                                     is_unbounded)
+                    else:
+                        temp_post_tree = positive_tree_plan
+                        while lowest_node_name not in temp_tree.right_child.get_event_names():
+                            temp_post_tree = temp_tree
+                            temp_tree = temp_tree.left_child
+                            if len(temp_tree.get_event_names()) == 1:
+                                break
+                        temp_post_tree.left_child = NegationAlgorithm._instantiate_negative_node(pattern, temp_tree,
+                                                                                                 node_under_negation,
+                                                                                                 is_unbounded)
+
         return positive_tree_plan
