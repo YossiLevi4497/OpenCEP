@@ -1,6 +1,7 @@
 from base.PatternStructure import CompositeStructure, UnaryStructure
 from plan.negation.NegationAlgorithm import *
 
+
 class LowestPositionNegationAlgorithm(NegationAlgorithm):
     """
     This class represents the lowest position negation algorithm.
