@@ -1,6 +1,5 @@
+from base.PatternStructure import CompositeStructure, UnaryStructure
 from plan.negation.NegationAlgorithm import *
-from plan.negation.StatisticNegationAlgorithm import StatisticNegationAlgorithm
-from plan.TreePlan import TreePlanBinaryNode
 
 class LowestPositionNegationAlgorithm(NegationAlgorithm):
     """
